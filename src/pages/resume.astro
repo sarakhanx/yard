@@ -1,0 +1,775 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { format, isValid } from 'date-fns';
+
+// Fetch all blog posts
+const posts = await Astro.glob('./blog/resume/*.{md,mdx}');
+
+// Helper function to safely format date
+function safeFormatDate(date: string | Date) {
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (!isValid(dateObj)) return '';
+    return format(dateObj, 'MMMM d, yyyy');
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return '';
+  }
+}
+
+// Extract resume data from frontmatter
+const resumeData = {
+  intro: {
+    name: "Sarawut Khantiyoo",
+    role: "Full Stack Developer",
+    email: "sarawut.khan@hotmail.com",
+    github: "sarakhanx",
+    website: "https://sarakhanx.github.io/astro-md-blog/",
+    location: `
+    9/27 moo9 pornprapanimit rd,\n
+    Banglamung, Chonburi, Thailand`
+  },
+  skills: {
+    languages: posts
+      .filter(post => post.frontmatter.category === 'skills' && post.frontmatter.type === 'language')
+      .map(post => ({
+        title: post.frontmatter.title,
+        level: post.frontmatter.level,
+        years: post.frontmatter.years,
+      })),
+    frameworks: posts
+      .filter(post => post.frontmatter.category === 'skills' && post.frontmatter.type === 'framework')
+      .map(post => ({
+        title: post.frontmatter.title,
+        level: post.frontmatter.level,
+        years: post.frontmatter.years,
+      })),
+    tools: posts
+      .filter(post => post.frontmatter.category === 'skills' && post.frontmatter.type === 'tool')
+      .map(post => ({
+        title: post.frontmatter.title,
+        level: post.frontmatter.level,
+        years: post.frontmatter.years,
+        }))
+  },
+  experiences: posts
+    .filter(post => post.frontmatter.category === 'experience')
+    .map(post => ({
+      company: post.frontmatter.company,
+      role: post.frontmatter.role,
+      period: post.frontmatter.period,
+      startDate: post.frontmatter.startDate ? safeFormatDate(post.frontmatter.startDate) : '',
+      endDate: post.frontmatter.endDate ? safeFormatDate(post.frontmatter.endDate) : 'Present',
+      highlights: post.frontmatter.highlights || []
+    }))
+    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()),
+  projects: posts
+    .filter(post => post.frontmatter.category === 'project')
+    .map(post => ({
+      name: post.frontmatter.title,
+      description: post.frontmatter.description,
+      tech: post.frontmatter.tech || [],
+      link: post.frontmatter.link,
+      date: post.frontmatter.date ? safeFormatDate(post.frontmatter.date) : ''
+    }))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+  education: posts
+    .filter(post => post.frontmatter.category === 'education')
+    .map(post => ({
+      degree: post.frontmatter.degree,
+      school: post.frontmatter.school,
+      startYear: post.frontmatter.startDate ? safeFormatDate(post.frontmatter.startDate) : '',
+      endYear: post.frontmatter.endDate ? safeFormatDate(post.frontmatter.endDate) : '',
+      gpa: post.frontmatter.gpa
+    }))[0] || {
+      degree: "",
+      school: "",
+      startYear: "",
+      endYear: "",
+      gpa: ""
+    }
+};
+---
+
+<Layout title="Resume | Sarawut Khantiyoo" description="My Professional Resume" ogImage="https://media2.dev.to/dynamic/image/width=1000,height=500,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fj13hvcaopqhanpvs6utn.png">
+  <header class="web-only">
+    <h1>RESUME</h1>
+    <button onclick="window.print()" class="print-button">
+      Print Resume
+    </button>
+    <p>
+      คลิกที่ส่วนต่างๆ เพื่อซ่อนหรือแสดงข้อมูลก่อนปริ๊น
+      <span class="hidden sm:inline">• ปรับแต่ง Resume</span>
+    </p>
+    <span>
+        <a href={resumeData.intro.website} target="_blank" class="header-link">
+          Website →
+        </a>
+    </span>
+    <span>
+        <a href={`https://github.com/${resumeData.intro.github}`} target="_blank" class="header-link">
+          GitHub →
+        </a>
+    </span>
+  </header>
+
+  <main class="resume-container">
+    <section class="section" data-hideable>
+      <div class="section-header">
+        <div class="name-container">
+          <h1>{resumeData.intro.name}</h1>
+          <p class="role">{resumeData.intro.role}</p>
+        </div>
+        <p class="professional-summary">
+          Passionate Full Stack Developer with experience in building and maintaining website and ERP applications. 
+          Skilled in both frontend and backend development, with a strong focus on creating efficient, 
+          scalable, and user-friendly solutions. Committed to writing clean, maintainable code and 
+          staying current with emerging technologies and best practices in web development.
+        </p>
+        <div class="contact-grid">
+          <div class="contact-item">
+            <span class="icon">📧</span>
+            <a href={`mailto:${resumeData.intro.email}`}>{resumeData.intro.email}</a>
+          </div>
+          <div class="contact-item">
+            <span class="icon">📍</span>
+            <span>{resumeData.intro.location}</span>
+          </div>
+          <div class="contact-item">
+            <span class="icon">🔗</span>
+            <a href={`https://github.com/${resumeData.intro.github}`} target="_blank">github.com/{resumeData.intro.github}</a>
+          </div>
+          <div class="contact-item">
+            <span class="icon">🌐</span>
+            <a href={resumeData.intro.website} target="_blank">
+              https://sarakhanx.github.io/astro-md-blog
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" data-hideable>
+        <h2>Education</h2>
+        <div class="education-item">
+          <h3>{resumeData.education.degree}</h3>
+          <p>{resumeData.education.school}</p>
+          <p>Start Year: {resumeData.education.startYear}</p>
+          <p>End Year: {resumeData.education.endYear}</p>
+          <p>GPA: {resumeData.education.gpa}</p>
+        </div>
+    </section>
+
+    <section class="section" data-hideable>
+      <h2>Skills</h2>
+      <div class="skills-grid">
+        <div class="skill-category" data-hideable>
+          <h3>Languages</h3>
+          <ul>
+            {resumeData.skills.languages.map(skill => (
+              <li data-hideable>{skill.title}: {skill.level}</li>
+            ))}
+          </ul>
+        </div>
+        <div class="skill-category" data-hideable>
+          <h3>Frameworks</h3>
+          <ul>
+            {resumeData.skills.frameworks.map(skill => (
+              <li data-hideable>{skill.title}: {skill.level}</li>
+            ))}
+          </ul>
+        </div>
+        <div class="skill-category" data-hideable>
+          <h3>Tools</h3>
+          <ul>
+            {resumeData.skills.tools.map(skill => (
+              <li data-hideable>{skill.title}: {skill.level}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" data-hideable>
+      <h2>Experience</h2>
+      {resumeData.experiences.map(exp => (
+        <div class="experience-item" data-hideable>
+          <div class="experience-header">
+            <h3>{exp.role}</h3>
+            <span class="period">{exp.period}</span>
+          </div>
+          <p>{exp.company}</p>
+          <ul>
+            {exp.highlights.map(highlight => (
+              <li data-hideable>{highlight}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+
+    <section class="section" data-hideable>
+      <h2>Projects</h2>
+      <div class="projects-grid">
+        {resumeData.projects.map(project => (
+          <div class="project-card" data-hideable>
+            <h3>{project.name}</h3>
+            <p>{project.description}</p>
+            <div class="tech-stack">
+              {project.tech.map(tech => (
+                <span class="tech-tag" data-hideable>{tech}</span>
+              ))}
+            </div>
+            <a href={project.link} target="_blank" class="project-link" data-hideable>
+              View Project →
+            </a>
+          </div>
+        ))}
+      </div>
+    </section>
+
+  </main>
+</Layout>
+
+<style>
+  /* Import IBM Plex Sans */
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --a4-width: 210mm;
+    --a4-height: 297mm;
+    --page-margin: 12mm;
+    --text-dark: #1a1a1a;
+    --text-gray: #4a4a4a;
+    --section-gap: 6mm;
+    --item-gap: 3mm;
+  }
+
+  .resume-container {
+    width: var(--a4-width);
+    min-height: var(--a4-height);
+    margin: 0 auto;
+    padding: var(--page-margin);
+    background: white;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.2;
+    display: flex;
+    flex-direction: column;
+    gap: var(--section-gap);
+    color: var(--text-dark);
+  }
+
+  .header-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--item-gap);
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .header-section h1 {
+    margin: 0;
+    font-size: 18pt;
+    color: var(--text-dark);
+  }
+
+  .contact-info {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2mm 10mm;
+    color: var(--text-dark);
+    font-size: 9pt;
+  }
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--section-gap);
+  }
+
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--item-gap);
+  }
+
+  .section h2 {
+    font-size: 13pt;
+    color: var(--text-dark);
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1mm;
+    margin: 0;
+  }
+
+  .skills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--item-gap) 8mm;
+  }
+
+  .skill-category {
+    flex: 1;
+    min-width: 45%;
+  }
+
+  .skill-category h3 {
+    font-size: 11pt;
+    margin: 0 0 2mm 0;
+    color: var(--text-dark);
+  }
+
+  .skill-category ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5mm;
+    color: var(--text-gray);
+  }
+
+  .experience-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4mm;
+  }
+
+  .experience-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5mm;
+  }
+
+  .experience-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .experience-header h3 {
+    font-size: 11pt;
+    margin: 0;
+    color: var(--text-dark);
+  }
+
+  .period {
+    font-size: 9pt;
+    color: var(--text-gray);
+  }
+
+  .experience-item ul {
+    margin: 0;
+    padding-left: 4mm;
+    display: flex;
+    flex-direction: column;
+    gap: 1mm;
+    color: var(--text-gray);
+  }
+
+  .projects-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4mm;
+  }
+
+  .project-card {
+    flex: 1;
+    min-width: 45%;
+    display: flex;
+    flex-direction: column;
+    gap: 2mm;
+    padding: 2mm;
+  }
+
+  .project-card h3 {
+    font-size: 11pt;
+    margin: 0;
+    color: var(--text-dark);
+  }
+
+  .project-card p {
+    margin: 0;
+    font-size: 9pt;
+    color: var(--text-gray);
+  }
+
+  .tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5mm;
+  }
+
+  .tech-tag {
+    font-size: 8pt;
+    padding: 0.5mm 1.5mm;
+    background: var(--text-gray);
+    color: white;
+    border-radius: 1mm;
+  }
+
+  .education-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5mm;
+    padding: 2mm;
+  }
+
+  .education-item h3 {
+    font-size: 11pt;
+    margin: 0;
+    color: var(--text-dark);
+  }
+
+  .education-item p {
+    margin: 0;
+    font-size: 9pt;
+    color: var(--text-gray);
+  }
+
+  /* Print styles */
+  @media print {
+    @page {
+      size: A4;
+      margin: var(--page-margin);
+    }
+
+    html, body {
+      width: 210mm;
+      height: 297mm;
+      margin: 0;
+      padding: 0;
+    }
+
+    .resume-container {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+
+    .header-section {
+      margin-top: 0;
+    }
+
+    .web-only {
+      display: none !important;
+    }
+
+    [data-hideable].hidden {
+      display: none !important;
+    }
+
+    .section {
+      break-inside: avoid;
+    }
+
+    .experience-item, 
+    .project-card, 
+    .skill-category {
+      break-inside: avoid;
+    }
+  }
+
+  /* Screen styles */
+  @media screen {
+    .resume-container {
+      max-width: var(--a4-width);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin: 20px auto;
+    }
+  }
+
+  /* Responsive design */
+  @media screen and (max-width: 210mm) {
+    .resume-container {
+      width: 100%;
+      min-height: auto;
+      padding: 8mm;
+    }
+
+    .skills-grid,
+    .projects-grid {
+      flex-direction: column;
+    }
+
+    .skill-category,
+    .project-card {
+      min-width: 100%;
+    }
+
+    .contact-info {
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5mm;
+    }
+  }
+
+  /* Add to your existing CSS */
+  [data-hideable] {
+    cursor: pointer;
+    position: relative;
+    transition: opacity 0.2s ease;
+  }
+
+  [data-hideable].hidden {
+    opacity: 0.3;
+  }
+
+  /* Add IBM Plex Sans Thai font */
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap');
+
+  .web-only {
+    background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%);
+    padding: 1.5rem;
+    text-align: center;
+    color: white;
+    font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', sans-serif;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  .web-only h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+
+  .print-button {
+    margin-top: 1rem;
+    padding: 0.5rem 2rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', sans-serif;
+  }
+
+  .print-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .print-button:active {
+    transform: translateY(0);
+  }
+
+  .web-only p {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .section-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+  }
+
+  .section-header .role {
+    font-size: 1.2rem;
+    color: var(--text-gray);
+    margin: 0.5rem 0;
+  }
+
+  .contact-info {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    color: var(--text-dark);
+    flex-wrap: wrap;
+  }
+
+  .contact-info p {
+    margin: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .contact-info .location-text {
+    white-space: pre-line;
+    text-align: left;
+    line-height: 1.4;
+  }
+
+  .contact-info a {
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .contact-info a:hover {
+    color: var(--text-dark);
+  }
+
+  .project-link {
+    font-size: 9pt;
+    color: #2563eb;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s ease;
+  }
+
+  .project-link:hover {
+    color: #1a365d;
+  }
+
+  .header-link {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+  }
+
+  .header-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .header-link:active {
+    transform: translateY(0);
+  }
+
+  .name-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+  }
+
+  .name-container h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .name-underline {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      var(--text-dark) 20%, 
+      var(--text-dark) 80%, 
+      transparent 100%
+    );
+  }
+
+  .section-header .role {
+    font-size: 1.1rem;
+    color: var(--text-gray);
+    margin: 1rem 0;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .name-container {
+    text-align: left;
+    margin-bottom: 1rem;
+  }
+
+  .name-container h1 {
+    font-size: 3rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  .name-container .role {
+    font-size: 1.5rem;
+    color: #6F2CF2;
+    margin: 0.5rem 0 0 0;
+    font-weight: 500;
+  }
+
+  .professional-summary {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-dark);
+    margin: 1.5rem 0;
+    max-width: 800px;
+    text-align: left;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+    text-align: left;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .contact-item .icon {
+    font-size: 1.2rem;
+  }
+
+  .contact-item a {
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .contact-item a:hover {
+    color: #2563eb;
+  }
+
+  .section-header {
+    text-align: left;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+  }
+</style>
+
+<script>
+  // Handle hide/show functionality
+  document.querySelectorAll('[data-hideable]').forEach(element => {
+    element.addEventListener('click', (e) => {
+      // Prevent triggering parent hideable elements
+      e.stopPropagation();
+      element.classList.toggle('hidden');
+    });
+  });
+
+  // Add tooltip to show that items are clickable
+  const style = document.createElement('style');
+  document.head.appendChild(style);
+</script> 

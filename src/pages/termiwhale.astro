@@ -1,0 +1,100 @@
+---
+import TerminalLayout from '../layouts/TerminalLayout.astro';
+// Get all command files
+const commands = await Astro.glob('./blog/ai/commands/*.md');
+const commandsMap = Object.fromEntries(
+  commands.map(cmd => [
+    cmd.file.split('/').pop().replace('.md', ''),
+    cmd.compiledContent()
+      .replace(/<[^>]*>/g, '')  // Remove HTML tags
+      .replace(/&nbsp;/g, ' ')  // Replace &nbsp;
+      .replace(/\s+/g, ' ')     // Replace multiple spaces with single space
+      .split('\n')
+      .map(line => line.trim()) // Trim each line
+      .filter(Boolean)          // Remove empty lines
+      .join('\n')              // Join with single newline
+      .replace(/\n\s+/g, '\n') // Remove spaces at start of lines
+      .trim()
+  ])
+);
+---
+
+<TerminalLayout title="Terminal AI Chat">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" />
+  <main class="min-h-screen bg-black p-4">
+    <div id="terminal" class="w-full h-[90vh]"></div>
+  </main>
+</TerminalLayout>
+
+<script is:inline src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+
+<script type="module" define:vars={{ commandsMap }}>
+  const terminal = new window.Terminal({
+    theme: {
+      background: '#000000',
+      foreground: '#00ff00',
+      cursor: '#00ff00',
+    },
+    cursorBlink: true,
+    fontSize: 14,
+  });
+
+  const fitAddon = new window.FitAddon.FitAddon();
+  terminal.loadAddon(fitAddon);
+
+  const terminalElement = document.getElementById('terminal');
+  if (terminalElement) {
+    terminal.open(terminalElement);
+    fitAddon.fit();
+  }
+
+  window.addEventListener('resize', () => {
+    fitAddon.fit();
+  });
+
+  terminal.writeln('Welcome to Terminal AI Chat');
+  terminal.writeln('Type /help to see available commands');
+  terminal.write('\n$ ');
+
+  let currentLine = '';
+
+  terminal.onKey(({ key, domEvent }) => {
+    const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey;
+
+    if (domEvent.keyCode === 13) { // Enter key
+      terminal.write('\r\n');
+      handleCommand(currentLine);
+      currentLine = '';
+      terminal.write('$ ');
+    } else if (domEvent.keyCode === 8) { // Backspace
+      if (currentLine.length > 0) {
+        currentLine = currentLine.slice(0, -1);
+        terminal.write('\b \b');
+      }
+    } else if (printable) {
+      currentLine += key;
+      terminal.write(key);
+    }
+  });
+
+  async function handleCommand(cmd) {
+    cmd = cmd.trim();
+    if (!cmd.startsWith('/')) {
+      terminal.writeln('Commands must start with /');
+      return;
+    }
+
+    if (cmd === '/clear') {
+      terminal.clear();
+      return;
+    }
+
+    const commandName = cmd.slice(1); // Remove the '/'
+    if (commandsMap[commandName]) {
+      terminal.writeln(commandsMap[commandName]);
+    } else {
+      terminal.writeln(`Command not found: ${cmd}`);
+    }
+  }
+</script>

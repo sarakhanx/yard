@@ -1,0 +1,79 @@
+---
+import ThemeToggle from '../components/ThemeToggle.astro';
+
+interface Props {
+	title: string;
+	description: string;
+	ogImage: string;
+}
+
+const { title, description, ogImage } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content={description} />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/yard/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<meta property="og:image" content={ogImage} />
+	</head>
+	<body>
+		<ThemeToggle />
+		<slot />
+	</body>
+</html>
+
+<style is:global>
+	:root[data-theme="dark"] {
+		--bg-primary: #36393f;
+		--bg-secondary: #2f3136;
+		--text-primary: #ffffff;
+		--text-secondary: #b9bbbe;
+		--accent-primary: #5865f2;
+		--accent-hover: #4752c4;
+		--card-bg: #40444b;
+	}
+
+	:root[data-theme="light"] {
+		--bg-primary: #ffffff;
+		--bg-secondary: #f2f3f5;
+		--text-primary: #2e3338;
+		--text-secondary: #4f545c;
+		--accent-primary: #5865f2;
+		--accent-hover: #4752c4;
+		--card-bg: #e3e5e8;
+	}
+
+	html {
+		font-family: system-ui, sans-serif;
+		background: var(--bg-primary);
+		color: var(--text-primary);
+		transition: background-color 0.3s ease, color 0.3s ease;
+	}
+
+	body {
+		margin: 0;
+		padding: 0;
+	}
+
+	.post-list a {
+		background: var(--bg-secondary);
+		color: var(--text-primary);
+	}
+
+	.post-list a:hover {
+		background: var(--card-bg);
+	}
+
+	h1, h2, h3, h4, h5, h6 {
+		color: var(--text-primary);
+	}
+
+	p, .metadata {
+		color: var(--text-secondary);
+	}
+</style>

@@ -1,0 +1,276 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { format } from 'date-fns';
+import SearchBar from '../components/SearchBar.astro';
+import Pagination from '../components/Pagination.astro';
+
+interface Page {
+  data: { slug: string; title: string }[];
+  currentPage: number;
+  lastPage: number;
+}
+
+const posts = await Astro.glob('./blog/*.{md,mdx}');
+const sortedPosts = posts.sort((a, b) => 
+  new Date(b.frontmatter.date).valueOf() - new Date(a.frontmatter.date).valueOf()
+);
+---
+
+<Layout title="MY ENTIRE NOTE" description="My entire note description" ogImage="https://media.licdn.com/dms/image/C4E12AQGEy0nHsryvOg/article-cover_image-shrink_720_1280/0/1561242730098?e=2147483647&v=beta&t=Zvez_D5lTF6HeyMW9_KSObThHV1sRQY62sQo-QXyuRk">
+  <main>
+    <h1 class="typing-title">
+      <span class="typing-text">วาฬ ฮันดริด</span>
+    </h1>
+    <SearchBar />
+    <ul class="post-list">
+      {sortedPosts.map(post => (
+        <li>
+          <a href={post.url}>
+            <div class="post-image-container">
+              {post.frontmatter.slug ? (
+                <img 
+                  src={post.frontmatter.slug} 
+                  alt={post.frontmatter.title}
+                  class="post-image"
+                  loading="lazy"
+                  onload="this.style.opacity='1'"
+                />
+              ) : (
+                <div class="skeleton-image">
+                  <div class="skeleton-animation"></div>
+                </div>
+              )}
+            </div>
+            <div class="post-content">
+              <h2>{post.frontmatter.title}</h2>
+              <div class="metadata">
+                <time datetime={post.frontmatter.date}>
+                  {format(new Date(post.frontmatter.date), 'MMMM d, yyyy')}
+                </time>
+                {post.frontmatter.author && 
+                  <span> • By {post.frontmatter.author}</span>
+                }
+              </div>
+              {post.frontmatter.description && 
+                <p>{post.frontmatter.description}</p>
+              }
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+    <Pagination />
+  </main>
+</Layout>
+
+<style>
+  main {
+    max-width: 80ch;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+  }
+  ul.post-list {
+    margin-top: 2rem;
+  }
+
+  .post-list {
+    list-style: none;
+    padding: 0;
+    border: 1px solid var(--card-bg);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+  }
+
+  .post-list li {
+    margin-bottom: 0;
+  }
+
+  .post-list li:not(:last-child) {
+    border-bottom: 1px solid var(--card-bg);
+  }
+
+  .post-list a {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    padding: 1rem;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .post-image-container {
+    width: 200px;
+    height: 150px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--card-bg);
+  }
+
+  .post-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .skeleton-image {
+    width: 100%;
+    height: 100%;
+    background: var(--card-bg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .skeleton-animation {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      var(--card-bg) 0%,
+      var(--bg-secondary) 50%,
+      var(--card-bg) 100%
+    );
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .post-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .post-list a {
+      grid-template-columns: 1fr;
+    }
+
+    .post-image-container {
+      width: 100%;
+      height: 200px;
+    }
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  .metadata {
+    color: var(--text-secondary);
+    margin: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+
+  p {
+    margin: 0.5rem 0 0;
+    color: var(--text-secondary);
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    font-family: 'Roboto', sans-serif;
+  }
+
+  .typing-title {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+    position: relative;
+  }
+
+  .typing-text {
+    position: relative;
+    display: inline-block;
+    width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    animation: typing 3s steps(90) forwards;
+  }
+
+  .typing-text::after {
+    content: '|';
+    position: absolute;
+    right: -8px;
+    color: var(--accent-primary);
+    animation: blink 1s infinite;
+  }
+
+  @keyframes typing {
+    0% { width: 0 }
+    100% { width: 100% }
+  }
+
+  @keyframes blink {
+    50% { opacity: 0 }
+  }
+</style>
+
+<script>
+  // Handle image loading errors
+  document.querySelectorAll('.post-image').forEach(img => {
+    img.addEventListener('error', (e) => {
+      const target = e.target as HTMLImageElement;
+      const container = target.parentElement;
+      if (container) {
+        container.innerHTML = `
+          <div class="skeleton-image">
+            <div class="skeleton-animation"></div>
+          </div>
+        `;
+      }
+    });
+  });
+
+  const messages = [
+    "ทำไมโปรแกรมเมอร์ถึงไม่หลง",
+    "เพราะเขาใช้ map()!",
+    "วาฬ ฮันดริด",
+    "Whale Hundrid",
+    "My entire note",
+    "แอ๋มหล่อมว๊ากกก",
+    "แฟนบอกเลิกโปรแกรมเมอร์ว่า ",
+    "'เราไม่ compatible กัน'",
+    "โปรแกรมเมอร์ขี้เกียจออกกำลังกายเพราะ",
+    "`ผมใช้ recursion ได้ ไม่ต้องวิ่งวน!`",
+  ];
+  
+  let currentIndex = 0;
+  const title = document.querySelector('.typing-text') as HTMLElement;
+  
+  function updateText() {
+    title.textContent = messages[currentIndex];
+    title.style.animation = 'none';
+    title.offsetHeight; // Trigger reflow
+    title.style.animation = 'typing 3s steps(30) forwards';
+    currentIndex = (currentIndex + 1) % messages.length;
+  }
+
+  // Initial text
+  updateText();
+  
+  // Change text every 5 seconds (after typing animation completes)
+  setInterval(updateText, 2500);
+</script>

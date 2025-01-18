@@ -1,0 +1,62 @@
+<div class="search-container">
+  <input 
+    type="text" 
+    id="searchInput" 
+    placeholder="Search posts... | ค้นหาบทความ..." 
+    class="search-input"
+  />
+</div>
+
+<style>
+  .search-container {
+    margin: 2rem auto;
+    max-width: 80ch;
+    padding: 0 1rem;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    border: 2px solid var(--card-bg);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    background: var(--card-bg);
+  }
+
+  .search-input::placeholder {
+    color: var(--text-secondary);
+  }
+</style>
+
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const posts = document.querySelectorAll('.post-list li');
+
+  searchInput?.addEventListener('input', (e) => {
+    const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
+
+    posts.forEach((post) => {
+      const title = post.querySelector('h2')?.textContent?.toLowerCase() || '';
+      const description = post.querySelector('p')?.textContent?.toLowerCase() || '';
+      const author = post.querySelector('.metadata')?.textContent?.toLowerCase() || '';
+
+      if (
+        title.includes(searchTerm) ||
+        description.includes(searchTerm) ||
+        author.includes(searchTerm)
+      ) {
+        (post as HTMLElement).style.display = '';
+      } else {
+        (post as HTMLElement).style.display = 'none';
+      }
+    });
+  });
+</script> 
