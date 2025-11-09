@@ -3,9 +3,15 @@ import Layout from './Layout.astro';
 import { format } from 'date-fns';
 import { Code } from 'astro/components';
 import { ArrowLeft } from 'lucide-react';
+import Comments from '../components/Comments';
+import { getSession } from 'auth-astro/server';
+import '../components/Comments.css';
 
 const { frontmatter, content } = Astro.props;
 const ogImageUrl = frontmatter.slug;
+
+// Get session for authentication
+const session = await getSession(Astro.request);
 ---
 
 <Layout title={frontmatter.title} description={frontmatter.description} ogImage={ogImageUrl}>
@@ -31,6 +37,14 @@ const ogImageUrl = frontmatter.slug;
           </a>
         </div>
       </div>
+
+      <!-- Comments Section -->
+      <Comments 
+        postSlug={frontmatter.slug || 'unknown'}
+        isAuthenticated={!!session?.user}
+        currentUser={session?.user}
+        client:load
+      />
     </div>
   </article>
 </Layout>
