@@ -1,0 +1,371 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getSession } from 'auth-astro/server';
+
+const session = await getSession(Astro.request);
+
+// Check if user is authenticated
+if (!session?.user) {
+  return Astro.redirect('/auth/signin');
+}
+
+// Check if user is admin
+const adminUsername = import.meta.env.ADMIN_GITHUB_USERNAME;
+const userGithubLogin = session.user.name || session.user.email;
+
+if (userGithubLogin !== adminUsername) {
+  return Astro.redirect('/yard');
+}
+---
+
+<Layout title="Blog Editor" description="Write and publish blog posts" ogImage="editor">
+  <div class="editor-container">
+    <div class="editor-header">
+      <h1>Blog Editor</h1>
+      <div class="user-info">
+        {session.user.image && <img src={session.user.image} alt="User avatar" class="avatar" />}
+        <span>{session.user.name || session.user.email}</span>
+        <button id="signout-btn" class="signout-btn">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="editor-content">
+      <div class="form-group">
+        <label for="post-title">Title</label>
+        <input type="text" id="post-title" placeholder="Enter post title..." />
+      </div>
+
+      <div class="form-group">
+        <label for="post-slug">Slug (URL-friendly)</label>
+        <input type="text" id="post-slug" placeholder="enter-post-slug" />
+      </div>
+
+      <div class="form-group">
+        <label for="post-content">Content (Markdown)</label>
+        <textarea id="post-content" placeholder="Write your blog post in markdown..."></textarea>
+      </div>
+
+      <div class="editor-actions">
+        <button id="preview-btn" class="btn btn-secondary">Preview</button>
+        <button id="save-btn" class="btn btn-primary">Publish Post</button>
+      </div>
+
+      <div id="preview-container" class="preview-container hidden">
+        <h2>Preview</h2>
+        <div id="preview-content" class="preview-content"></div>
+      </div>
+
+      <div id="message" class="message hidden"></div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { signOut } from 'auth-astro/client';
+
+  // Sign out handler
+  document.getElementById('signout-btn')?.addEventListener('click', async () => {
+    await signOut();
+    window.location.href = '/yard';
+  });
+
+  const titleInput = document.getElementById('post-title') as HTMLInputElement;
+  const slugInput = document.getElementById('post-slug') as HTMLInputElement;
+  const contentTextarea = document.getElementById('post-content') as HTMLTextAreaElement;
+  const previewBtn = document.getElementById('preview-btn') as HTMLButtonElement;
+  const saveBtn = document.getElementById('save-btn') as HTMLButtonElement;
+  const previewContainer = document.getElementById('preview-container') as HTMLDivElement;
+  const previewContent = document.getElementById('preview-content') as HTMLDivElement;
+  const message = document.getElementById('message') as HTMLDivElement;
+
+  // Auto-generate slug from title
+  titleInput?.addEventListener('input', () => {
+    const slug = titleInput.value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    if (slugInput) slugInput.value = slug;
+  });
+
+  // Preview functionality
+  previewBtn?.addEventListener('click', () => {
+    if (previewContainer && previewContent) {
+      previewContainer.classList.toggle('hidden');
+      if (!previewContainer.classList.contains('hidden')) {
+        // Simple markdown to HTML conversion (basic)
+        const markdown = contentTextarea?.value || '';
+        const html = markdown
+          .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+          .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+          .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+          .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+          .replace(/\*(.*)\*/gim, '<em>$1</em>')
+          .replace(/\n\n/gim, '</p><p>')
+          .replace(/\n/gim, '<br/>');
+        previewContent.innerHTML = `<p>${html}</p>`;
+      }
+    }
+  });
+
+  // Save post
+  saveBtn?.addEventListener('click', async () => {
+    const title = titleInput?.value?.trim();
+    const slug = slugInput?.value?.trim();
+    const content = contentTextarea?.value?.trim();
+
+    if (!title || !slug || !content) {
+      showMessage('Please fill in all fields', 'error');
+      return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Publishing...';
+
+    try {
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, slug, content }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showMessage('Post published successfully!', 'success');
+        // Clear form
+        if (titleInput) titleInput.value = '';
+        if (slugInput) slugInput.value = '';
+        if (contentTextarea) contentTextarea.value = '';
+        
+        // Redirect to the new post after a delay
+        setTimeout(() => {
+          window.location.href = `/yard/blog/${slug}`;
+        }, 1500);
+      } else {
+        showMessage(data.error || 'Failed to publish post', 'error');
+      }
+    } catch (error) {
+      console.error('Error publishing post:', error);
+      showMessage('An error occurred while publishing', 'error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Publish Post';
+    }
+  });
+
+  function showMessage(text: string, type: 'success' | 'error') {
+    if (message) {
+      message.textContent = text;
+      message.className = `message ${type}`;
+      setTimeout(() => {
+        message.classList.add('hidden');
+      }, 5000);
+    }
+  }
+</script>
+
+<style>
+  .editor-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+  }
+
+  .editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  .editor-header h1 {
+    color: var(--text-primary);
+    font-family: 'Fira Code', monospace;
+    font-size: 2rem;
+    margin: 0;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-primary);
+  }
+
+  .user-info span {
+    color: var(--text-primary);
+    font-family: 'Fira Code', monospace;
+  }
+
+  .signout-btn {
+    background-color: var(--accent-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .signout-btn:hover {
+    background-color: var(--accent-hover);
+  }
+
+  .editor-content {
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 2rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    color: var(--text-primary);
+    font-family: 'Fira Code', monospace;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.95rem;
+  }
+
+  .form-group textarea {
+    min-height: 400px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+  }
+
+  .editor-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary {
+    background-color: var(--accent-primary);
+    color: white;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--accent-hover);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--bg-secondary);
+  }
+
+  .preview-container {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--border-color);
+  }
+
+  .preview-container h2 {
+    color: var(--text-primary);
+    font-family: 'Fira Code', monospace;
+    margin-bottom: 1rem;
+  }
+
+  .preview-content {
+    background-color: var(--card-bg);
+    padding: 2rem;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .message {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    text-align: center;
+  }
+
+  .message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .editor-container {
+      padding: 1rem;
+    }
+
+    .editor-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .editor-actions {
+      flex-direction: column;
+    }
+
+    .btn {
+      width: 100%;
+    }
+  }
+</style>

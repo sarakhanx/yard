@@ -1,0 +1,193 @@
+.comments-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--border-color);
+}
+
+.comments-title {
+  color: var(--text-primary);
+  font-family: 'Fira Code', monospace;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.comment-form {
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.comment-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.comment-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-primary);
+}
+
+.comment-user-name {
+  color: var(--text-primary);
+  font-family: 'Fira Code', monospace;
+  font-weight: 600;
+}
+
+.comment-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-family: 'Fira Code', monospace;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.comment-textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.comment-submit-btn {
+  background-color: var(--accent-primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.comment-submit-btn:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+}
+
+.comment-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.signin-prompt {
+  background-color: var(--card-bg);
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.signin-prompt p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.signin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #24292e;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-family: 'Fira Code', monospace;
+  transition: background-color 0.2s ease;
+}
+
+.signin-btn:hover {
+  background-color: #1a1e22;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.comment {
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  transition: box-shadow 0.2s ease;
+}
+
+.comment:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.comment-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.comment-author {
+  color: var(--text-primary);
+  font-family: 'Fira Code', monospace;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.comment-date {
+  color: var(--text-secondary);
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85rem;
+}
+
+.comment-content {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.loading,
+.no-comments {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 2rem;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  font-family: 'Fira Code', monospace;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .comment-form {
+    padding: 1rem;
+  }
+
+  .comment {
+    padding: 1rem;
+  }
+
+  .comments-title {
+    font-size: 1.25rem;
+  }
+}
